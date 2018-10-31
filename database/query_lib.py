@@ -161,7 +161,7 @@ class GasBuddyQuery(object):
 			fileName+='.csv'
 		table=self.getTable(rowformat=True,useDate=True)
 		pd = pandas.DataFrame(table)
-		if os.path.exists('csv/'+fileName):
+		if os.path.exists(fileName):
 			pd.to_csv(fileName, mode='a', index=False, header=False)
 		else:
 			pd.to_csv(fileName, mode='w', index=False, header=HEADER)

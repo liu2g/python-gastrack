@@ -8,7 +8,6 @@ from uszipcode import SearchEngine, Zipcode, state_abbr
 import datetime
 import sys
 
-
 def list_transpose(lst):
 	check_type(lst,list,'Input must be a list')
 	for x in lst:
@@ -34,8 +33,16 @@ def usa_zip_by_popdense(zip_per_state):
 		zip_dict[state]=zip_list
 	return zip_dict
 
+TODAY=datetime.datetime.today()
+
+if os.path.exists(TODAY.strftime('%Y-%m-%d')+'.log'):
+	raise Exception('Database has been created today,comback tomorrow')
+elif today.hour>22:
+	raise Exception('It is not safe to request data close to 12 am, come back after 12 am')
+
+
 old_stdout = sys.stdout
-log_file = open(datetime.datetime.today().strftime('%Y-%m-%d')+'.log','w')
+log_file = open(TODAY.strftime('%Y-%m-%d')+'.log','w')
 sys.stdout = log_file
 
 for state, zips in usa_zip_by_popdense(10).items():
