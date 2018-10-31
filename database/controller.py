@@ -37,7 +37,7 @@ TODAY=datetime.datetime.today()
 
 if os.path.exists(TODAY.strftime('%Y-%m-%d')+'.log'):
 	raise Exception('Database has been created today,comback tomorrow')
-elif today.hour>22:
+elif TODAY.hour>22:
 	raise Exception('It is not safe to request data close to 12 am, come back after 12 am')
 
 
