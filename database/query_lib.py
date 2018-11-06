@@ -9,9 +9,14 @@ import pandas
 import os.path
 import datetime
 
-# 
-
 def gas_crawl(zipcodes,numReq):
+	# Inputs:
+	# zipcodes: a 5-digit string or a list of 5-digit strings
+	# numReq: an approximate number of request number of station the user wants
+	# Output:
+	# An object of QasBuddyQuery class
+
+	# Check input types and return errors
 	if (isinstance(zipcodes, str) or isinstance(zipcodes,list))==False:
 		raise TypeError('zipcodes must be a string or list')
 	if isinstance(zipcodes,str):
@@ -30,9 +35,13 @@ def gas_crawl(zipcodes,numReq):
 		raise TypeError('numReq must be an integer')
 	elif numReq<10 or numReq>9990:
 		raise ValueError('numReq must be an integer between 0 and 9990')
+	# All type check should pass up to here
 
-	Q=GasBuddyQuery()
 
+	Q=GasBuddyQuery() #initialize GasBuddyQuery object
+
+	# crawls over the Gas Buddy with URL 'https://www.gasbuddy.com/home?search=<zipcode>&cursor=<an_int>'
+	# and fill the list attributes of Q
 	for onezip in zipcodes:
 		url='https://www.gasbuddy.com/home?search='+onezip
 		for i in range(numReq//10):
@@ -49,6 +58,8 @@ def gas_crawl(zipcodes,numReq):
 			for servTag in soup.findAll('h3', {'class': 'style__header3___3T2tm style__header___onURp style__snug___2HJ4K styles__stationNameHeader___24lb3'}):
 				Q.servLst.append(str(servTag.contents[0]))
 	
+	# Now lists have been filled, but has junks including duplicates and price in '---''
+	# So eliminate those items by first setting them to None, and deleting them later
 	for i in range(len(Q.addrLst)):
 		if i==0 and Q.addrLst[i] in Q.addrLst[0:i]:
 			Q.addrLst[i]=None
@@ -61,24 +72,31 @@ def gas_crawl(zipcodes,numReq):
 	Q.addrLst=[x for x in Q.addrLst if x is not None]
 	Q.priceLst=[float(x[1:]) for x in Q.priceLst if x is not None]
 	Q.servLst=[x for x in Q.servLst if x is not None]
+
+	# Turn off the mutability of this object
 	Q._readOnly=True
 
 	return Q
 
 class GasBuddyQuery(object):
+	# GasBuddyQuery class should be immutable for user, with a flag _readOnly that turns off mutability
 	_readOnly=False
+
 	def __init__(self):
 		self.priceLst=[]
 		self.servLst=[]
 		self.addrLst=[]
-		self.reqDate=datetime.datetime.today()
+		self.reqDate=datetime.datetime.today() #an object is specific to the date requested
 
+	# This is the function that turns on and off mutability
+	# Note that when object is first initialized, it is mutable; and once _readOnly is set True, it cannot be turned on gain
 	def __setattr__(self, attrName, value):
 		if self._readOnly==False:
 			self.__dict__[attrName] = value
 		else:
 			raise AttributeError('GasBuddyQuery is a immutable class')
 
+	# Assisting function that helps transpose a list of cols into a list of rows
 	def transpose(self,lst):
 		if not isinstance(lst,list):
 			raise TypeError('transpose input must be a list')
@@ -90,6 +108,7 @@ class GasBuddyQuery(object):
 
 		return [list(i) for i in zip(*lst)]
 
+	# Return the cheapest gas station within itself
 	def getCheapest(self,rowformat=True):
 		cheapIndex=[i for i, x in enumerate(self.priceLst) if x == min(self.priceLst)]
 		cols=[[self.priceLst[i] for i in cheapIndex],[self.servLst[i] for i in cheapIndex],[self.addrLst[i] for i in cheapIndex]]
@@ -98,12 +117,14 @@ class GasBuddyQuery(object):
 		else:
 			return cols
 
+	# Return the average price within itself
 	def getAvg(self):
 		if self.priceLst==[]:
 			return None
 		else:	
 			return round(sum(self.priceLst)/len(self.priceLst),2)
 
+	# Function that translates itself into a readable list that has one row at a time
 	def getTable(self,rowformat=True,useDate=False):
 		table=[self.priceLst,self.servLst,self.addrLst]
 		if useDate:
@@ -113,6 +134,7 @@ class GasBuddyQuery(object):
 		else:
 			return table
 
+	# Function that returns itself except price is sorted
 	def sorted(self):
 		old_table=self.getTable()
 		new_table=sorted(old_table,key=lambda l:l[0], reverse=False)
@@ -124,6 +146,7 @@ class GasBuddyQuery(object):
 		Q._readOnly=True
 		return Q
 
+	# Function that removes a specific service from the quesry
 	def removeServ(self,selServ):
 		if (isinstance(selServ, str) or isinstance(selServ,list))==False:
 			raise TypeError('selServ must be a string or list')
@@ -151,6 +174,7 @@ class GasBuddyQuery(object):
 
 		return Q
 
+	# Function that outputs to csv
 	def to_csv(self,fileName=None):
 		if self.priceLst==[]:
 			return False
