@@ -9,6 +9,7 @@ import pandas
 import os.path
 import datetime
 
+# 
 
 def gas_crawl(zipcodes,numReq):
 	if (isinstance(zipcodes, str) or isinstance(zipcodes,list))==False:
