@@ -4,9 +4,11 @@
 # Description : 
 
 from query_lib import *
+from clearToday import *
 from uszipcode import SearchEngine, Zipcode, state_abbr
 import datetime
 import sys
+import traceback
 
 def list_transpose(lst):
 	check_type(lst,list,'Input must be a list')
@@ -37,6 +39,7 @@ def usa_zip_by_popdense(zip_per_state):
 
 TODAY=datetime.datetime.today()
 
+
 # Restrict request time
 if os.path.exists(TODAY.strftime('%Y-%m-%d')+'.log'):
 	raise Exception('Database has been created today,comback tomorrow')
@@ -49,8 +52,14 @@ log_file = open(TODAY.strftime('%Y-%m-%d')+'.log','w')
 sys.stdout = log_file
 
 # Actual request command
-for state, zips in usa_zip_by_popdense(10).items():
-	print(state, gas_crawl(zips,20).to_csv('gas_'+state))
+try:
+	for state, zips in usa_zip_by_popdense(10).items():
+		print(state, gas_crawl(zips,20).to_csv('gas_'+state))
+except Exception:
+	# Get rid of any changes made to the databse
+	clearToday()
+	# Then raise the exception
+	traceback.print_exc()
 
 sys.stdout = old_stdout
 log_file.close()
