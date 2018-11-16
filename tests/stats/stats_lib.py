@@ -9,3 +9,4 @@ import datetime
 df=pandas.read_csv('gas_OH.csv')
 df['date']=[datetime.datetime.strptime(x, '%Y-%m-%d') for x in df['date']]
 df['address']=[x.split(',')[1].strip() for x in df['address']]
+print(df.describe())
