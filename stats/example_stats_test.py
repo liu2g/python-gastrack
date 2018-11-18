@@ -13,6 +13,8 @@ print('*********************************Gas in USA Last Week********************
 print(USGasThisWeek(DIR))
 
 stat=gasStats(st='OH',fileName=DIR+'gas_OH.csv')
+print('**********************************Price Table in OH***************************************')
+print(stat.getPriceTable())
 print('********************************Service Analysis in OH************************************')
 print(stat.getOtherStats('service'))
 print('*********************************Date Analysis in OH**************************************')

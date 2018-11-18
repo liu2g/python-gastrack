@@ -12,6 +12,9 @@ import operator
 
 # class that includes the data, and has different function that analyzes the data
 class gasStats():
+	# Let the dataframe to be printed with all cols
+	pandas.set_option('display.expand_frame_repr', False)
+	
 	# dictionary on comparison symbols and actual operator
 	OPDICT={'<':operator.lt,'<=':operator.le,'==':operator.eq,'!=':operator.ne,'>':operator.gt,'>=':operator.ge}
 
@@ -28,7 +31,7 @@ class gasStats():
 
 	# Get a dataframe of the origitnal data sorted by price
 	def getPriceTable(self):
-		return self.db[['price','date','service','city']].sort_values(by=['price']).reset_index(drop=True)
+		return self.db[['price','date','service','address']].sort_values(by=['price']).reset_index(drop=True)
 
 	# Get pivot table of the data in terms of the subject input
 	def getOtherStats(self,subject):
