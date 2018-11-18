@@ -10,8 +10,12 @@ import numpy
 import os
 import operator
 
+# class that includes the data, and has different function that analyzes the data
 class gasStats():
+	# dictionary on comparison symbols and actual operator
 	OPDICT={'<':operator.lt,'<=':operator.le,'==':operator.eq,'!=':operator.ne,'>':operator.gt,'>=':operator.ge}
+
+	# st and fileName is optional and can be figured later
 	def __init__(self,st='',fileName=None):
 		self.state=st
 		if fileName==None:
@@ -22,9 +26,11 @@ class gasStats():
 	def importCSV(self,fileName):
 		self.db=self.csv2df(fileName)
 
+	# Get a dataframe of the origitnal data sorted by price
 	def getPriceTable(self):
 		return self.db[['price','date','service','city']].sort_values(by=['price']).reset_index(drop=True)
 
+	# Get pivot table of the data in terms of the subject input
 	def getOtherStats(self,subject):
 		if self.db is None:
 			raise Exception('No data has been imported')
@@ -36,6 +42,13 @@ class gasStats():
 			pt.index.name=subject
 			return pt.sort_values(by=['mean']).reset_index()
 
+	# filter function is a bit tricky
+	# for argument comps
+	# 	it will be either a list of 3-element tuples or a 3-element tuple
+	# 	tuple[0] is the subject to filter, tuple[1] is comparison symbol, typle[2] is the reference variable
+	# for argument gate
+	# 	default is OR, because you can't do that by running multiple filters
+	# 	you can also use AND, which can also be done by running multiple filters
 	def filter(self,comps,gate='or'):
 		self.noWarn()
 		if not isinstance(comps,list):
@@ -51,6 +64,7 @@ class gasStats():
 					boolIndex=boolIndex|self.OPDICT[cond[1]](self.db[cond[0]],cond[2])
 		self.db=self.db[boolIndex]
 
+	# get a stats dataframe of the whole data
 	def getPriceStats(self):
 		if len(self.db)==0:
 			return {'state':self.state,'count':0}
@@ -76,7 +90,10 @@ class gasStats():
 	def my75(self,g):
 		return numpy.percentile(g,75)
 
-def USGasStats(dataDir,constrains=None):
+# a function that imports all data in the database folder
+# dataDir argument is where the databse folder is at in repect of this script
+# constrains is the same as you do in filter function
+def USGasStats(dataDir,constrains=None,gate='or'):
 	csvFiles = [f for f in os.listdir(dataDir) if f.endswith('.csv')]
 	s=gasStats()
 	tempLst=[]
@@ -84,23 +101,14 @@ def USGasStats(dataDir,constrains=None):
 		s.state=f[4:6]
 		s.importCSV(dataDir+f)
 		if constrains!=None:
-			s.filter(constrains)
+			s.filter(constrains,gate)
 		tempLst.append(s.getPriceStats())
-	return pandas.DataFrame(tempLst,columns=tempLst[0].keys()).sort_values(by=['mean'])
+	return pandas.DataFrame(tempLst,columns=tempLst[0].keys()).sort_values(by=['mean']).reset_index(drop=True)
 
-def USGasToday():
-	return USGasStats('../../database/',constrains=('date','==',datetime.datetime.today().date()))
+# a specific function that returns a table regarding today's gas stats over USA
+def USGasToday(dataDir):
+	return USGasStats(dataDir,constrains=('date','==',datetime.datetime.today().date()))
 
-def USGasThisWeek():
-	return USGasStats('../../database/',constrains=('date','>',datetime.datetime.today().date()-datetime.timedelta(7)))
-
-print(USGasToday())
-print()
-print(USGasThisWeek())
-
-stat=gasStats(st='OH',fileName='../../database/gas_OH.csv')
-print(stat.getOtherStats('service'))
-print()
-print(stat.getOtherStats('date'))
-print()
-print(stat.getOtherStats('city'))
+# a specific function that returns a table regarding this week's gas stats over USA
+def USGasThisWeek(dataDir):
+	return USGasStats(dataDir,constrains=('date','>',datetime.datetime.today().date()-datetime.timedelta(7)))
