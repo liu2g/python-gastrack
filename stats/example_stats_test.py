@@ -4,6 +4,15 @@
 # Description : 
 
 from stats_lib import *
+import sys
+
+ptofile=True
+
+if ptofile:
+	# Transfer print window to a log file
+	old_stdout = sys.stdout
+	log_file = open('stats_report.log','w')
+	sys.stdout = log_file
 
 DIR='../database/'
 
@@ -21,3 +30,7 @@ print('*********************************Date Analysis in OH*********************
 print(stat.getOtherStats('date'))
 print('*********************************City Analysis in OH**************************************')
 print(stat.getOtherStats('city'))
+
+if ptofile:
+	sys.stdout = old_stdout
+	log_file.close()
