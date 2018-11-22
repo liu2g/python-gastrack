@@ -5,4 +5,4 @@
 
 from query_lib import *
 
-print(gas_crawl('45220',100).removeServ('Sunoco').getCheapest())
+print(gas_crawl('43085',100).removeServ('Sunoco').getCheapest())
